@@ -1,14 +1,17 @@
 package com.CommerceSpring.service;
 
+import com.CommerceSpring.RabbitMQ.Model.EmailAndPasswordModel;
+import com.CommerceSpring.RabbitMQ.Model.UserSaveFromAuthModel;
 import com.CommerceSpring.dto.request.*;
 import com.CommerceSpring.entity.Auth;
 import com.CommerceSpring.exception.AuthServiceException;
 import com.CommerceSpring.repository.AuthRepository;
 import com.CommerceSpring.utilty.JwtTokenManager;
-import com.CommerceSpring.config.security.SecurityConfig;
 import com.CommerceSpring.utilty.enums.EStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import com.CommerceSpring.utilty.PasswordEncoder;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +22,8 @@ import static com.CommerceSpring.exception.ErrorType.*;
 public class AuthService {
     private final AuthRepository authRepository;
     private final JwtTokenManager jwtTokenManager;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final RabbitTemplate rabbitTemplate;
 
     @Transactional
     public Boolean register(RegisterRequestDto dto) {
@@ -32,8 +36,26 @@ public class AuthService {
                 .password(encodedPassword)
                 .build();
         authRepository.save(auth);
+        rabbitTemplate.convertAndSend("commerceSpringDirectExchange","keySaveUserFromAuth", UserSaveFromAuthModel.builder()
+                .authId(auth.getId())
+                .firstName(dto.firstName())
+                .lastName(dto.lastName())
+                .build());
 
+//        rabbitTemplate.convertAndSend("commerceSpringDirectExchange","keySendVerificationEmail", EmailVerificationModel.builder()
+//                .email(dto.email()).firstName(dto.firstName()).lastName(dto.lastName()).authId(auth.getId()).build());
         return true;
+    }
+
+    @RabbitListener(queues = "queueEmailAndPasswordFromAuth")
+    public EmailAndPasswordModel emailAndPasswordFromAuth(Long authId) {
+        Auth auth = authRepository.findById(authId).orElseThrow();
+        return EmailAndPasswordModel.builder()
+                .email(auth.getEmail())
+                .encryptedPassword(auth.getPassword())
+                .build();
+
+
     }
 
     public String login(LoginRequestDto dto) {
@@ -48,8 +70,8 @@ public class AuthService {
             throw new AuthServiceException(EMAIL_OR_PASSWORD_WRONG);
         }
 
-        return jwtTokenManager.createToken(auth.getId())
-                .orElseThrow(() -> new AuthServiceException(TOKEN_CREATION_FAILED));
+        String token = jwtTokenManager.createToken(auth.getId()).orElseThrow(() -> new AuthServiceException(TOKEN_CREATION_FAILED));
+        return token;
     }
 
     public Auth findById(Long authId) {
