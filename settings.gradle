@@ -1,3 +1,4 @@
 rootProject.name = 'CommerceSpring'
 include 'AuthService'
+include 'UserService'
 
