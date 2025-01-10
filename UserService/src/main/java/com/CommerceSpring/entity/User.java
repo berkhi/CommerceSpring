@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,7 +25,7 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private Long authId;
+    private UUID authId;
 
     @Column(length = 40)
     private String firstName;

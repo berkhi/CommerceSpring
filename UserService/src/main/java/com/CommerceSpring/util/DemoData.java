@@ -12,10 +12,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -29,14 +26,14 @@ public class DemoData implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         saveBaseRoles();
         saveSuperAdmin();
-        saveUsers();
+//        saveUsers();
     }
     private void saveSuperAdmin(){
         List<Role> roles = new ArrayList<>();
         roles.add(roleRepository.findById(1L).get());
         User superAdmin = User.builder()
                 .role(roles)
-                .authId(1L)
+                .authId(UUID.randomUUID())
                 .firstName("Admin")
                 .lastName("Admin")
                 .status(EStatus.ACTIVE)

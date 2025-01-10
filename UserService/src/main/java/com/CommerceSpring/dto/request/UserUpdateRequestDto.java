@@ -6,10 +6,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 
 public record UserUpdateRequestDto(
         @NotNull(message = ErrorMessages.AUTH_ID_CANT_BE_NULL)
-        Long authId,
+        UUID authId,
         @Size(max = 40, message = ErrorMessages.FIRST_NAME_CANT_EXCEED_LENGTH)
         @NotBlank(message = ErrorMessages.FIRST_NAME_CANT_BE_BLANK)
         String firstName,

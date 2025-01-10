@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Data
 public class ChangePasswordFromUserModel {
-    private Long authId;
+    private UUID authId;
     private String newPassword;
 }

@@ -15,6 +15,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static com.CommerceSpring.exception.ErrorType.*;
 
 @Service
@@ -36,11 +38,14 @@ public class AuthService {
                 .password(encodedPassword)
                 .build();
         authRepository.save(auth);
-        rabbitTemplate.convertAndSend("commerceSpringDirectExchange","keySaveUserFromAuth", UserSaveFromAuthModel.builder()
-                .authId(auth.getId())
-                .firstName(dto.firstName())
-                .lastName(dto.lastName())
-                .build());
+
+        rabbitTemplate.convertAndSend("commerceSpringDirectExchange", "keySaveUserFromAuth",
+                UserSaveFromAuthModel.builder()
+                        .authId(auth.getId()) // UUID
+                        .firstName(dto.firstName())
+                        .lastName(dto.lastName())
+                        .build()
+        );
 
 //        rabbitTemplate.convertAndSend("commerceSpringDirectExchange","keySendVerificationEmail", EmailVerificationModel.builder()
 //                .email(dto.email()).firstName(dto.firstName()).lastName(dto.lastName()).authId(auth.getId()).build());
@@ -48,15 +53,14 @@ public class AuthService {
     }
 
     @RabbitListener(queues = "queueEmailAndPasswordFromAuth")
-    public EmailAndPasswordModel emailAndPasswordFromAuth(Long authId) {
+    public EmailAndPasswordModel emailAndPasswordFromAuth(UUID authId) {
         Auth auth = authRepository.findById(authId).orElseThrow();
         return EmailAndPasswordModel.builder()
                 .email(auth.getEmail())
                 .encryptedPassword(auth.getPassword())
                 .build();
-
-
     }
+
 
     public String login(LoginRequestDto dto) {
         Auth auth = authRepository.findOptionalByEmail(dto.email())
@@ -70,11 +74,14 @@ public class AuthService {
             throw new AuthServiceException(EMAIL_OR_PASSWORD_WRONG);
         }
 
-        String token = jwtTokenManager.createToken(auth.getId()).orElseThrow(() -> new AuthServiceException(TOKEN_CREATION_FAILED));
+        String token = jwtTokenManager.createToken(auth.getId())
+                .orElseThrow(() -> new AuthServiceException(TOKEN_CREATION_FAILED));
+
         return token;
     }
 
-    public Auth findById(Long authId) {
+
+    public Auth findById(UUID authId) {
         return authRepository.findById(authId)
                 .orElseThrow(() -> new AuthServiceException(USER_NOT_FOUND));
     }

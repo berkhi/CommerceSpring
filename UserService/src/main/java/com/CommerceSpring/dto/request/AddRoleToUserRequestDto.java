@@ -1,7 +1,9 @@
 package com.CommerceSpring.dto.request;
 
+import java.util.UUID;
+
 public record AddRoleToUserRequestDto(
-        Long userId,
+        UUID userId,
         Long roleId
 ) {
 }

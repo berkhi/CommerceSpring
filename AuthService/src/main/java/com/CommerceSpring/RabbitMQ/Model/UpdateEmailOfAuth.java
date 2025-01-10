@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -12,5 +14,5 @@ import lombok.NoArgsConstructor;
 public class UpdateEmailOfAuth
 {
     String email;
-    Long authId;
+    UUID authId;
 }

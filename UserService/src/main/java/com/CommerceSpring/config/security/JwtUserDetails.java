@@ -1,4 +1,4 @@
-package com.CommerceSpring.security;
+package com.CommerceSpring.config.security;
 
 import com.CommerceSpring.RabbitMQ.Model.EmailAndPasswordModel;
 import com.CommerceSpring.RabbitMQ.Model.UserRoleListModel;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,27 +27,25 @@ public class JwtUserDetails implements UserDetailsService {
         return null;
     }
 
-    public UserDetails loadByTokenId(Long authId){
+    public UserDetails loadByTokenId(UUID authId){
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
         List<String> rolesRabbit = getRolesRabbit(authId);
 
-        rolesRabbit.forEach(roles->grantedAuthorities.add(new SimpleGrantedAuthority(roles)));
+        rolesRabbit.forEach(roles -> grantedAuthorities.add(new SimpleGrantedAuthority(roles)));
 
         EmailAndPasswordModel emailAndPassword = getEmailAndPassword(authId);
 
         return User.builder().username(emailAndPassword.getEmail()).password("").authorities(grantedAuthorities).build(); //email ve password auth'dan çekilecek
     }
 
-    public List<String> getRolesRabbit(Long authId){
+    public List<String> getRolesRabbit(UUID authId){
         UserRoleListModel userRoleListModel = (UserRoleListModel) rabbitTemplate.convertSendAndReceive("commerceSpringDirectExchange", "keyRolesByAuthId", authId);
-        System.out.println(userRoleListModel + "rolelist");
+        System.out.println(userRoleListModel + " rolelist");
         return userRoleListModel.getUserRoles();
     }
 
-    public EmailAndPasswordModel getEmailAndPassword(Long authId){
-        return  (EmailAndPasswordModel) rabbitTemplate.convertSendAndReceive("commerceSpringDirectExchange", "keyEmailAndPasswordFromAuth", authId);
+    public EmailAndPasswordModel getEmailAndPassword(UUID authId){
+        return (EmailAndPasswordModel) rabbitTemplate.convertSendAndReceive("commerceSpringDirectExchange", "keyEmailAndPasswordFromAuth", authId);
     }
-
-
 }

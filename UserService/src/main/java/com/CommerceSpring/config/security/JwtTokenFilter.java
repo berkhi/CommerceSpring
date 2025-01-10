@@ -1,4 +1,4 @@
-package com.CommerceSpring.security;
+package com.CommerceSpring.config.security;
 
 import com.CommerceSpring.exception.ErrorType;
 import com.CommerceSpring.exception.UserException;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String bearerToken = request.getHeader("Authorization");
         if(bearerToken !=null){
             String token = bearerToken.substring(7);
-            Long authId = jwtTokenManager.getAuthIdFromToken(token).orElseThrow(() -> new UserException(ErrorType.INVALID_TOKEN));
+            UUID authId = jwtTokenManager.getAuthIdFromToken(token).orElseThrow(() -> new UserException(ErrorType.INVALID_TOKEN));
 
             UserDetails userDetails=jwtUserDetails.loadByTokenId(authId);
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

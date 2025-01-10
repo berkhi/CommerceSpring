@@ -5,12 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Data
 public class UserSaveFromAuthModel {
-    private Long authId;
+    private UUID authId;
     private String firstName;
     private String lastName;
 }

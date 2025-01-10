@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.CommerceSpring.exception.ErrorType.*;
 
@@ -24,14 +25,14 @@ public class JwtTokenManager {
     Long expireTime = 1000L * 60 * 120; // 120 dakika
 
 
-    public Optional<String> createToken(Long authId){
+    public Optional<String> createToken(UUID authId){
         String token="";
 
         //claim içersindeki değerler herkes tarafından görülebilir.
         try {
             token = JWT.create()
                     .withAudience()
-                    .withClaim("authId",authId)
+                    .withClaim("authId", authId.toString())  // UUID to String conversion
                     .withIssuer(issuer)
                     .withIssuedAt(new Date())
                     .sign(Algorithm.HMAC512(secretKey));
@@ -43,17 +44,17 @@ public class JwtTokenManager {
         }
     }
 
-    public Optional<Long> getAuthIdFromToken(String token){
+    public Optional<UUID> getAuthIdFromToken(String token){
         DecodedJWT decodedJWT = null;
         try {
             Algorithm algorithm = Algorithm.HMAC512(secretKey);
             JWTVerifier verifier = JWT.require(algorithm).withIssuer(issuer).build();
             decodedJWT = verifier.verify(token);
 
-            if(decodedJWT==null){
+            if(decodedJWT == null){
                 return Optional.empty();
             } else {
-                return Optional.of(decodedJWT.getClaim("authId").asLong());
+                return Optional.of(UUID.fromString(decodedJWT.getClaim("authId").asString()));  // Convert to UUID
             }
 
         } catch (IllegalArgumentException e) {
@@ -62,17 +63,5 @@ public class JwtTokenManager {
             throw new UserException(TOKEN_VERIFY_FAILED);
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

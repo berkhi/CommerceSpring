@@ -6,13 +6,14 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RabbitMQNotification implements Serializable {
-    private List<Long> authIds;
+    private List<UUID> authIds;
     private String message;
     private String title;
 }

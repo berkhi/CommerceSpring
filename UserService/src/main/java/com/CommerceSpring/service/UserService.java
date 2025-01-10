@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
@@ -32,11 +33,8 @@ public class UserService {
     private final JwtTokenManager jwtTokenManager;
     private final RabbitTemplate rabbitTemplate;
 
-    public User findUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(()->new UserException(ErrorType.USER_NOT_FOUND));
-    }
-    public User findByAuthId(Long authId) {
-        return userRepository.findByAuthId(authId).orElseThrow(()->new UserException(ErrorType.USER_NOT_FOUND));
+    public User findByAuthId(UUID authId) {
+        return userRepository.findByAuthId(authId).orElseThrow(() -> new UserException(ErrorType.USER_NOT_FOUND));
     }
 
     @Transactional
@@ -124,12 +122,11 @@ public class UserService {
     }
 
     @RabbitListener(queues = "queueRolesByAuthId")
-    private UserRoleListModel sendAuthRoles(Long authId) { //private kurallarına bak
-
+    private UserRoleListModel sendAuthRoles(UUID authId) {
         return getRolesForSecurity(authId);
     }
 
-    public UserRoleListModel getRolesForSecurity(Long authId){
+    public UserRoleListModel getRolesForSecurity(UUID authId) {
         List<Role> userRoles = userRepository.getUserRoles(authId);
         List<String> userRolesString = new ArrayList<>();
         userRoles.forEach(role -> {
@@ -140,7 +137,7 @@ public class UserService {
 
 
     public List<String> getUserRoles(String jwtToken) {
-        Long authId = jwtTokenManager.getAuthIdFromToken(jwtToken).orElseThrow(()-> new UserException(ErrorType.INVALID_TOKEN));
+        UUID authId = jwtTokenManager.getAuthIdFromToken(jwtToken).orElseThrow(() -> new UserException(ErrorType.INVALID_TOKEN));
 
         User user = userRepository.findByAuthId(authId).orElseThrow(() -> new UserException(ErrorType.USER_NOT_FOUND));
         System.out.println("JWT Token: " + jwtToken);

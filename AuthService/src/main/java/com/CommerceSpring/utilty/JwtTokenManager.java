@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class JwtTokenManager {
@@ -20,52 +21,54 @@ public class JwtTokenManager {
     String issuer;
     private final Long EXDATE = 1000L * 60 * 60 ;
 
-    public Optional<String> createToken (Long authId){
+    public Optional<String> createToken(UUID authId) {
         String token;
-        try{
-            token = JWT.create().withAudience()
-                    .withClaim("authId", authId)
+        try {
+            token = JWT.create()
+                    .withClaim("authId", authId.toString()) // UUID'yi String olarak sakla
                     .withIssuer(issuer)
                     .withIssuedAt(new Date())
                     .withExpiresAt(new Date(System.currentTimeMillis() + EXDATE))
                     .sign(Algorithm.HMAC512(secretKey));
             return Optional.of(token);
-        }catch (Exception e){
+        } catch (Exception e) {
             return Optional.empty();
         }
     }
 
-    public Optional<Long> validateToken(String token){
-        try{
+
+    public Optional<UUID> validateToken(String token) {
+        try {
             Algorithm algorithm = Algorithm.HMAC512(secretKey);
             JWTVerifier verifier = JWT.require(algorithm).withIssuer(issuer).build();
             DecodedJWT decodedJWT = verifier.verify(token);
-            if(decodedJWT == null)
+            if (decodedJWT == null)
                 return Optional.empty();
-            Long authId = decodedJWT.getClaim("authId").asLong();
-            return Optional.of(authId);
-        }catch (Exception e){
+
+            String authId = decodedJWT.getClaim("authId").asString(); // String olarak alınır
+            return Optional.of(UUID.fromString(authId)); // String'den UUID'ye dönüştürülür
+        } catch (Exception e) {
             return Optional.empty();
         }
     }
 
-    public Optional<Long> getIdFromToken(String token){
+    public Optional<UUID> getIdFromToken(String token) {
         try {
-            Algorithm algorithm=Algorithm.HMAC512(secretKey);
-            JWTVerifier verifier=JWT.require(algorithm).withIssuer(issuer).build();
-            DecodedJWT decodedJWT= verifier.verify(token);
+            Algorithm algorithm = Algorithm.HMAC512(secretKey);
+            JWTVerifier verifier = JWT.require(algorithm).withIssuer(issuer).build();
+            DecodedJWT decodedJWT = verifier.verify(token);
 
-            if (decodedJWT==null){
+            if (decodedJWT == null) {
                 throw new AuthServiceException(ErrorType.INVALID_TOKEN);
             }
 
-            Long id=decodedJWT.getClaim("authId").asLong();
-            return Optional.of(id);
-
-        }catch (Exception e){
+            String id = decodedJWT.getClaim("authId").asString(); // String olarak alınır
+            return Optional.of(UUID.fromString(id)); // String'den UUID'ye dönüştürülür
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             throw new AuthServiceException(ErrorType.INVALID_TOKEN);
         }
     }
+
 
 }
