@@ -35,9 +35,7 @@ public class RabbitConfig {
 
 
     @Bean
-    public Queue queueSaveUserFromAuth() {
-        return new Queue(queueSaveUserFromAuth);
-    }
+    public Queue queueSaveUserFromAuth() {return new Queue(queueSaveUserFromAuth);}
     @Bean
     public Queue queueRolesByAuthId() {
         return new Queue(queueRolesByAuthId);
@@ -49,8 +47,8 @@ public class RabbitConfig {
 
 
     @Bean
-    public Binding bindingUserSaveFromAuth (Queue queueSaveUserFromAuth, DirectExchange businessDirectExchange) {
-        return BindingBuilder.bind(queueSaveUserFromAuth).to(businessDirectExchange).with(keySaveUserFromAuth);
+    public Binding bindingUserSaveFromAuth (Queue queueSaveUserFromAuth, DirectExchange commerceSpringDirectExchange) {
+        return BindingBuilder.bind(queueSaveUserFromAuth).to(commerceSpringDirectExchange).with(keySaveUserFromAuth);
     }
     @Bean
     public Binding bindingRolesByAuthId (Queue queueRolesByAuthId, DirectExchange commerceSpringDirectExchange) {

@@ -1,4 +1,4 @@
-package com.CommerceSpring.config.security;
+package com.CommerceSpring.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
